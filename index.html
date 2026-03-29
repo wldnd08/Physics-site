@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Physics Site</title>
+</head>
+<body>
+
+<h1>물리 개념 사이트</h1>
+
+<button onclick="loadConcepts(1)">동역학</button>
+<button onclick="loadConcepts(2)">열역학</button>
+<button onclick="loadConcepts(3)">유체역학</button>
+<button onclick="loadConcepts(4)">양자역학</button>
+
+<hr>
+
+<div id="concepts"></div>
+
+<hr>
+
+<h3>개념 추가</h3>
+<input id="title" placeholder="제목">
+<input id="content" placeholder="내용">
+<input id="category" placeholder="카테고리 번호 (1~4)">
+<button onclick="addConcept()">추가</button>
+
+<script>
+const API = "https://physics-site-061n.onrender.com";
+
+async function loadConcepts(categoryId) {
+  const res = await fetch(API + "/concepts");
+  const data = await res.json();
+
+  const filtered = data.filter(c => c.category_id == categoryId);
+
+  document.getElementById("concepts").innerHTML =
+    filtered.map(c => `
+      <div>
+        <h3>${c.title}</h3>
+        <p>${c.content}</p>
+        <button onclick="loadComments(${c.id})">댓글 보기</button>
+        <div id="comments-${c.id}"></div>
+      </div>
+    `).join("");
+}
+
+async function addConcept() {
+  await fetch(API + "/concepts", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      title: document.getElementById("title").value,
+      content: document.getElementById("content").value,
+      category_id: document.getElementById("category").value
+    })
+  });
+
+  alert("추가 완료!");
+}
+
+async function loadComments(id) {
+  const res = await fetch(API + "/comments/" + id);
+  const data = await res.json();
+
+  document.getElementById("comments-" + id).innerHTML =
+    data.map(c => `<p>${c.content}</p>`).join("");
+}
+</script>
+
+</body>
+</html>
